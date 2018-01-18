@@ -51,7 +51,7 @@ public class Pantalla extends javax.swing.JFrame {
         jTree1.setShowsRootHandles(true);
     }
 
-    private void crearXLS(String url) throws MalformedURLException, IOException{
+    private void crearXLS(String url, String n) throws MalformedURLException, IOException{
         String temp="",volt="",frec="",enco="";
         ArrayList<String> motor = new ArrayList<String>();
         motor.add("Motor 1");
@@ -133,20 +133,20 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
         chooser.setAcceptAllFileFilterUsed(false);
+        chooser.setSelectedFile(new File(n.replaceAll("/", " - ")));
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
         {
             File archivo = chooser.getSelectedFile();
             if (!archivo.getAbsolutePath().endsWith(".xls")){
                 archivo = new File(chooser.getSelectedFile() + ".xls");
             }
-            FileOutputStream fileOut = new FileOutputStream(archivo);
-            excel.write(fileOut);
-            fileOut.close();
+            try (FileOutputStream fileOut = new FileOutputStream(archivo)) {
+                excel.write(fileOut);
+            }
             if (archivo.exists()){
                 JOptionPane.showMessageDialog(this,"El archivo "+archivo.getName()+" ha sido creado.","Aviso",JOptionPane.INFORMATION_MESSAGE);
             }
         }
-        f.deleteOnExit();
     }
     
     private void leerJSON(String url) throws MalformedURLException, IOException{
@@ -232,7 +232,6 @@ public class Pantalla extends javax.swing.JFrame {
             }
             if (select)
             {
-                
                 JMenuItem item = new JMenuItem("Crear Excel");
                 item.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
@@ -240,9 +239,10 @@ public class Pantalla extends javax.swing.JFrame {
                     s=(String)s.subSequence(0, s.length()-1);
                     String[] lista = s.split(",");
                     s=lista[1].substring(1)+"/"+lista[2].substring(1);
+                    String temp=s;
                     s="https://sapbot-001.firebaseio.com/"+s+"/";
                       try {
-                          crearXLS(s);
+                          crearXLS(s,temp);
                       } catch (IOException ex) {
                           System.out.println(ex.getMessage());
                       }
@@ -267,13 +267,16 @@ public class Pantalla extends javax.swing.JFrame {
                     }
                     });
                     chooser.setAcceptAllFileFilterUsed(false);
+                    String s=selPath.toString();
+                    s=(String)s.subSequence(0, s.length()-1);
+                    String[] lista = s.split(",");
+                    s=lista[1].substring(1)+"/"+lista[2].substring(1);
+                    String temp=s;
+                    s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty";
+                    chooser.setSelectedFile(new File(temp.replaceAll("/", " - ")));
                     if (chooser.showSaveDialog(jTree1) == JFileChooser.APPROVE_OPTION)
                     {
-                        String s=selPath.toString();
-                        s=(String)s.subSequence(0, s.length()-1);
-                        String[] lista = s.split(",");
-                        s=lista[1].substring(1)+"/"+lista[2].substring(1);
-                        s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty";
+                        
                         File archivo = chooser.getSelectedFile();
                         if (!archivo.getAbsolutePath().endsWith(".json")){
                             archivo = new File(chooser.getSelectedFile() + ".json");
@@ -297,6 +300,8 @@ public class Pantalla extends javax.swing.JFrame {
                 menu.show(evt.getComponent(), evt.getX(), evt.getY());
             }
         }
+        File f = new File("temp.json");
+        f.delete();
     }//GEN-LAST:event_jTree1MousePressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
