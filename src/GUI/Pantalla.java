@@ -133,7 +133,9 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
         chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setSelectedFile(new File(n.replaceAll("/", " - ")));
+        n=n.replaceAll("/", " - ");
+        n=n.replaceAll(":", "_");
+        chooser.setSelectedFile(new File(n));
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
         {
             File archivo = chooser.getSelectedFile();
@@ -273,7 +275,9 @@ public class Pantalla extends javax.swing.JFrame {
                     s=lista[1].substring(1)+"/"+lista[2].substring(1);
                     String temp=s;
                     s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty";
-                    chooser.setSelectedFile(new File(temp.replaceAll("/", " - ")));
+                    temp=temp.replaceAll("/", " - ");
+                    temp=temp.replaceAll(":", "_");
+                    chooser.setSelectedFile(new File(temp));
                     if (chooser.showSaveDialog(jTree1) == JFileChooser.APPROVE_OPTION)
                     {
                         
