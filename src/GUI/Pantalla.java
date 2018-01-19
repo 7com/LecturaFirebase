@@ -44,7 +44,7 @@ public class Pantalla extends javax.swing.JFrame {
         try {
             leerJSON("https://sapbot-001.firebaseio.com/.json?shallow=true");
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            JOptionPane.showMessageDialog(null, ex.getMessage());
         }
         jTree1.expandRow(0);
         jTree1.setRootVisible(false);
@@ -246,7 +246,7 @@ public class Pantalla extends javax.swing.JFrame {
                       try {
                           crearXLS(s,temp);
                       } catch (IOException ex) {
-                          System.out.println(ex.getMessage());
+                          JOptionPane.showMessageDialog(null, ex.getMessage());
                       }
                   }
                 });
@@ -288,9 +288,9 @@ public class Pantalla extends javax.swing.JFrame {
                         try {
                             FileUtils.copyURLToFile(new URL(s), archivo);
                         } catch (MalformedURLException ex) {
-                            System.out.println(ex.getMessage());
+                            JOptionPane.showMessageDialog(null, ex.getMessage());
                         } catch (IOException ex) {
-                            System.out.println(ex.getMessage());
+                            JOptionPane.showMessageDialog(null, ex.getMessage());
                         }
                         if (archivo.exists()){
                             JOptionPane.showMessageDialog(jTree1,"El archivo "+archivo.getName()+" se ha descargado.","Aviso",JOptionPane.INFORMATION_MESSAGE);
