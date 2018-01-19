@@ -250,7 +250,7 @@ public class Pantalla extends javax.swing.JFrame {
                       }
                   }
                 });
-                JMenuItem item2 = new JMenuItem("Descargar JSON");
+                JMenuItem item2 = new JMenuItem("Descargar pruebas formato JSON");
                 item2.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
                     JFileChooser chooser = new JFileChooser();
