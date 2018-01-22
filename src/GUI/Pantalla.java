@@ -6,38 +6,33 @@
 
 package GUI;
 
+import Firebase.Firebase;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import static java.lang.Float.parseFloat;
-import static java.lang.Integer.parseInt;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Scanner;
-import javax.swing.JFileChooser;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 
 public class Pantalla extends javax.swing.JFrame {
     private DefaultMutableTreeNode root = new DefaultMutableTreeNode("SAPBot");
     private DefaultTreeModel SAPBot = new DefaultTreeModel(root);
+    private ExecutorService exec;
+    
     /** Creates new form Pantalla */
     public Pantalla() {
         initComponents();
@@ -49,108 +44,9 @@ public class Pantalla extends javax.swing.JFrame {
         jTree1.expandRow(0);
         jTree1.setRootVisible(false);
         jTree1.setShowsRootHandles(true);
+        this.exec = Executors.newFixedThreadPool(5);
     }
 
-    private void crearXLS(String url, String n) throws MalformedURLException, IOException{
-        String temp="",volt="",frec="",enco="";
-        ArrayList<String> motor = new ArrayList<String>();
-        motor.add("Motor 1");
-        motor.add("Motor 2");
-        motor.add("Motor 3");
-        motor.add("Motor 4");
-        motor.add("Motor 5");
-        motor.add("Motor 6");
-        motor.add("Motor 7");
-        HSSFWorkbook excel = new HSSFWorkbook();
-        File f = new File("temp.json");
-        for(int i=0;i<7;i++)
-        {   
-            String s = url+motor.get(i)+"/Frecuencia/.json";
-            FileUtils.copyURLToFile(new URL(s), f);
-            Scanner scan = new Scanner(f);
-            frec=scan.nextLine();
-            
-            s = url+motor.get(i)+"/Posicion/.json";
-            FileUtils.copyURLToFile(new URL(s), f);
-            scan = new Scanner(f);
-            enco=scan.nextLine();
-            
-            s = url+motor.get(i)+"/Temperatura/.json";
-            FileUtils.copyURLToFile(new URL(s), f);
-            scan = new Scanner(f);
-            temp=scan.nextLine();
-            
-            s = url+motor.get(i)+"/Voltaje/.json";
-            FileUtils.copyURLToFile(new URL(s), f);
-            scan = new Scanner(f);
-            volt=scan.nextLine();
-            
-            if (!volt.equalsIgnoreCase("null"))
-            {
-                temp=temp.substring(1, temp.length()-1);
-                volt=volt.substring(1, volt.length()-1);
-                frec=frec.substring(1, frec.length()-1);
-                enco=enco.substring(1, enco.length()-1);
-                temp=temp.replaceAll("\\s","");
-                volt=volt.replaceAll("\\s","");
-                frec=frec.replaceAll("\\s","");
-                enco=enco.replaceAll("\\s","");
-                String[] te,vo,fr,en;
-                te=temp.split(",");
-                vo=volt.split(",");
-                fr=frec.split(",");
-                en=enco.split(",");
-                Sheet hoja = excel.createSheet(motor.get(i));
-                Row fila = hoja.createRow((short)0);
-                fila.createCell(0).setCellValue("Frecuencia");
-                fila.createCell(1).setCellValue("Posicion");
-                fila.createCell(2).setCellValue("Temperatura");
-                fila.createCell(3).setCellValue("Voltaje");
-                
-                for (int j=1;j<=en.length;j++)
-                {
-                    fila = hoja.createRow((short)j);
-                    fila.createCell(0).setCellValue(parseFloat(fr[j-1]));
-                    fila.createCell(1).setCellValue(parseInt(en[j-1]));
-                    fila.createCell(2).setCellValue(parseFloat(te[j-1]));
-                    fila.createCell(3).setCellValue(parseFloat(vo[j-1]));
-                }
-            }
-        }
-        JFileChooser chooser = new JFileChooser();
-        chooser.addChoosableFileFilter(new FileFilter() {
-
-            public String getDescription() {
-                return "Archivo Formato XLS (*.xls)";
-            }
-
-            public boolean accept(File f) {
-                if (f.isDirectory()) {
-                    return true;
-                } else {
-                    return f.getName().toLowerCase().endsWith(".xls");
-                }
-            }
-        });
-        chooser.setAcceptAllFileFilterUsed(false);
-        n=n.replaceAll("/", " - ");
-        n=n.replaceAll(":", "_");
-        chooser.setSelectedFile(new File(n));
-        if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
-        {
-            File archivo = chooser.getSelectedFile();
-            if (!archivo.getAbsolutePath().endsWith(".xls")){
-                archivo = new File(chooser.getSelectedFile() + ".xls");
-            }
-            try (FileOutputStream fileOut = new FileOutputStream(archivo)) {
-                excel.write(fileOut);
-            }
-            if (archivo.exists()){
-                JOptionPane.showMessageDialog(this,"El archivo "+archivo.getName()+" ha sido creado.","Aviso",JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
-    }
-    
     private void leerJSON(String url) throws MalformedURLException, IOException{
 	ArrayList<DefaultMutableTreeNode> n1 = new ArrayList<DefaultMutableTreeNode>();
 	String json = IOUtils.toString(new URL(url));
@@ -234,69 +130,18 @@ public class Pantalla extends javax.swing.JFrame {
             }
             if (select)
             {
+                
                 JMenuItem item = new JMenuItem("Crear Excel");
                 item.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                    String s=selPath.toString();
-                    s=(String)s.subSequence(0, s.length()-1);
-                    String[] lista = s.split(",");
-                    s=lista[1].substring(1)+"/"+lista[2].substring(1);
-                    String temp=s;
-                    s="https://sapbot-001.firebaseio.com/"+s+"/";
-                      try {
-                          crearXLS(s,temp);
-                      } catch (IOException ex) {
-                          JOptionPane.showMessageDialog(null, ex.getMessage());
-                      }
+                    exec.execute(new Firebase(jTree1,0,selPath));
                   }
                 });
                 JMenuItem item2 = new JMenuItem("Descargar pruebas formato JSON");
                 item2.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                    JFileChooser chooser = new JFileChooser();
-                    chooser.addChoosableFileFilter(new FileFilter() {
- 
-                    public String getDescription() {
-                        return "Archivo Formato JSON (*.json)";
+                     exec.execute(new Firebase(jTree1,1,selPath));
                     }
-
-                    public boolean accept(File f) {
-                        if (f.isDirectory()) {
-                            return true;
-                        } else {
-                            return f.getName().toLowerCase().endsWith(".json");
-                        }
-                    }
-                    });
-                    chooser.setAcceptAllFileFilterUsed(false);
-                    String s=selPath.toString();
-                    s=(String)s.subSequence(0, s.length()-1);
-                    String[] lista = s.split(",");
-                    s=lista[1].substring(1)+"/"+lista[2].substring(1);
-                    String temp=s;
-                    s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty";
-                    temp=temp.replaceAll("/", " - ");
-                    temp=temp.replaceAll(":", "_");
-                    chooser.setSelectedFile(new File(temp));
-                    if (chooser.showSaveDialog(jTree1) == JFileChooser.APPROVE_OPTION)
-                    {
-                        
-                        File archivo = chooser.getSelectedFile();
-                        if (!archivo.getAbsolutePath().endsWith(".json")){
-                            archivo = new File(chooser.getSelectedFile() + ".json");
-                        }
-                        try {
-                            FileUtils.copyURLToFile(new URL(s), archivo);
-                        } catch (MalformedURLException ex) {
-                            JOptionPane.showMessageDialog(null, ex.getMessage());
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(null, ex.getMessage());
-                        }
-                        if (archivo.exists()){
-                            JOptionPane.showMessageDialog(jTree1,"El archivo "+archivo.getName()+" se ha descargado.","Aviso",JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    }
-                  }
                 });
                 JPopupMenu menu = new JPopupMenu("Popup");
                 menu.add(item);
