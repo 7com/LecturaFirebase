@@ -102,7 +102,7 @@ public class Firebase implements Runnable{
         motor.add("Motor 6");
         motor.add("Motor 7");
         HSSFWorkbook excel = new HSSFWorkbook();
-        File f = new File("temp.json");
+        File f = File.createTempFile("SAPBot",".tmp");
         for(int i=0;i<7;i++)
         {   
             pb.setString("Procesando Motor "+(i+1));
@@ -110,21 +110,25 @@ public class Firebase implements Runnable{
             FileUtils.copyURLToFile(new URL(s), f);
             Scanner scan = new Scanner(f);
             frec=scan.nextLine();
+            scan.close();
             
             s = url+motor.get(i)+"/Posicion/.json";
             FileUtils.copyURLToFile(new URL(s), f);
             scan = new Scanner(f);
             enco=scan.nextLine();
+            scan.close();
             
             s = url+motor.get(i)+"/Temperatura/.json";
             FileUtils.copyURLToFile(new URL(s), f);
             scan = new Scanner(f);
             temp=scan.nextLine();
+            scan.close();
             
             s = url+motor.get(i)+"/Voltaje/.json";
             FileUtils.copyURLToFile(new URL(s), f);
             scan = new Scanner(f);
             volt=scan.nextLine();
+            scan.close();
             
             if (!volt.equalsIgnoreCase("null"))
             {
@@ -211,6 +215,7 @@ public class Firebase implements Runnable{
             }
         }
         dialog.dispose();
+        f.delete();
     }
     
     private void descargarJSON(){

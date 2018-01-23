@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -149,8 +148,6 @@ public class Pantalla extends javax.swing.JFrame {
                 menu.show(evt.getComponent(), evt.getX(), evt.getY());
             }
         }
-        File f = new File("temp.json");
-        f.delete();
     }//GEN-LAST:event_jTree1MousePressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
