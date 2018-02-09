@@ -1,5 +1,5 @@
 
-import GUI.PantallaDescarga;
+import GUI.PantallaInicio;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -17,7 +17,7 @@ public class main {
         try {
             carcarCFG();
             iniciarFirebase();
-            PantallaDescarga p = new PantallaDescarga(obtenerToken());
+            PantallaInicio p = new PantallaInicio(obtenerToken());
             p.setVisible(true);
         } catch (FileNotFoundException ex) {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
