@@ -45,6 +45,7 @@ public class Firebase implements Runnable{
     private int op;
     private TreePath selPath;
     private String ruta;
+    private String token;
     
     @Override
     public void run() {
@@ -65,11 +66,12 @@ public class Firebase implements Runnable{
         }
     }
     
-    public Firebase(JTree j,int i, TreePath t)
+    public Firebase(JTree j,int i, TreePath t, String to)
     {
         jTree1=j;
         op=i;
         selPath=t;
+        token=to;
     }
     
     private void crearXLS(){
@@ -219,7 +221,7 @@ public class Firebase implements Runnable{
         String[] lista = s.split(",");
         s=lista[1].substring(1)+"/"+lista[2].substring(1);
         String temp=s;
-        s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty";
+        s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty&access_token="+token;
         temp=temp.replaceAll("/", " - ");
         temp=temp.replaceAll(":", "_");
         chooser.setSelectedFile(new File(temp));

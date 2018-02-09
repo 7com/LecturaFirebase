@@ -27,18 +27,21 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.apache.commons.io.IOUtils;
 
-public class Pantalla extends javax.swing.JFrame {
+public class PantallaDescarga extends javax.swing.JFrame {
     private DefaultMutableTreeNode root = new DefaultMutableTreeNode("SAPBot");
     private DefaultTreeModel SAPBot = new DefaultTreeModel(root);
     private ExecutorService exec;
+    private String token;
     
     /** Creates new form Pantalla */
-    public Pantalla() {
+    public PantallaDescarga(String t) {
+        token=t;
         initComponents();
         try {
-            leerJSON("https://sapbot-001.firebaseio.com/.json?shallow=true");
+            leerJSON("https://sapbot-001.firebaseio.com/.json?shallow=true&access_token="+token);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, ex.getMessage());
+            System.exit(1);
         }
         jTree1.expandRow(0);
         jTree1.setRootVisible(false);
@@ -58,7 +61,7 @@ public class Pantalla extends javax.swing.JFrame {
         }
         for (int i=0; i<n1.size(); i++){
             json = IOUtils.toString(new URL("https://sapbot-001.firebaseio.com/"
-                    +n1.get(i).getUserObject().toString()+".json?shallow=true"));
+                    +n1.get(i).getUserObject().toString()+".json?shallow=true&access_token="+token));
             mapper = new ObjectMapper();
             node = mapper.readTree(json);
             fieldNames = node.fieldNames();
@@ -133,13 +136,13 @@ public class Pantalla extends javax.swing.JFrame {
                 JMenuItem item = new JMenuItem("Crear Excel");
                 item.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                    exec.execute(new Firebase(jTree1,0,selPath));
+                    exec.execute(new Firebase(jTree1,0,selPath,null));
                   }
                 });
                 JMenuItem item2 = new JMenuItem("Descargar pruebas formato JSON");
                 item2.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                     exec.execute(new Firebase(jTree1,1,selPath));
+                     exec.execute(new Firebase(jTree1,1,selPath,token));
                     }
                 });
                 JPopupMenu menu = new JPopupMenu("Popup");
