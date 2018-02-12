@@ -17,7 +17,7 @@ public class main {
         try {
             carcarCFG();
             iniciarFirebase();
-            PantallaInicio p = new PantallaInicio(obtenerToken());
+            PantallaInicio p = new PantallaInicio(obtenerToken(),BD_URL);
             p.setVisible(true);
         } catch (FileNotFoundException ex) {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);

@@ -6,7 +6,7 @@
 
 package GUI;
 
-import Firebase.Firebase;
+import Firebase.FirebaseExport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.event.ActionEvent;
@@ -27,26 +27,26 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.apache.commons.io.IOUtils;
 
-public class PantallaDescarga extends javax.swing.JFrame {
+public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
     private DefaultMutableTreeNode root = new DefaultMutableTreeNode("SAPBot");
     private DefaultTreeModel SAPBot = new DefaultTreeModel(root);
     private ExecutorService exec;
     private String token;
-    
+    private String firebaseURL;
+    private PantallaInicio inicio;
     /** Creates new form Pantalla */
-    public PantallaDescarga(String t) {
+    public PantallaDescarga(String t,String url, PantallaInicio i) {
         token=t;
+        firebaseURL=url;
         initComponents();
-        try {
-            leerJSON("https://sapbot-001.firebaseio.com/.json?shallow=true&access_token="+token);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, ex.getMessage());
-            System.exit(1);
-        }
-        jTree1.expandRow(0);
-        jTree1.setRootVisible(false);
-        jTree1.setShowsRootHandles(true);
         this.exec = Executors.newFixedThreadPool(5);
+        inicio=i;
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+                inicio.setButton3(true);
+            }
+        });
     }
 
     private void leerJSON(String url) throws MalformedURLException, IOException{
@@ -60,7 +60,7 @@ public class PantallaDescarga extends javax.swing.JFrame {
             n1.add(new DefaultMutableTreeNode(fieldName));
         }
         for (int i=0; i<n1.size(); i++){
-            json = IOUtils.toString(new URL("https://sapbot-001.firebaseio.com/"
+            json = IOUtils.toString(new URL(firebaseURL
                     +n1.get(i).getUserObject().toString()+".json?shallow=true&access_token="+token));
             mapper = new ObjectMapper();
             node = mapper.readTree(json);
@@ -85,7 +85,7 @@ public class PantallaDescarga extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Sistema de Descarga SAPBot");
         setBackground(new java.awt.Color(255, 255, 255));
 
@@ -136,13 +136,13 @@ public class PantallaDescarga extends javax.swing.JFrame {
                 JMenuItem item = new JMenuItem("Crear Excel");
                 item.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                    exec.execute(new Firebase(jTree1,0,selPath,null));
+                    exec.execute(new FirebaseExport(jTree1,0,selPath,token,firebaseURL));
                   }
                 });
                 JMenuItem item2 = new JMenuItem("Descargar pruebas formato JSON");
                 item2.addActionListener(new ActionListener() {
                   public void actionPerformed(ActionEvent e) {
-                     exec.execute(new Firebase(jTree1,1,selPath,token));
+                     exec.execute(new FirebaseExport(jTree1,1,selPath,token,firebaseURL));
                     }
                 });
                 JPopupMenu menu = new JPopupMenu("Popup");
@@ -157,6 +157,20 @@ public class PantallaDescarga extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        try {
+            leerJSON(firebaseURL+".json?shallow=true&access_token="+token);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, ex.getMessage());
+            System.exit(1);
+        }
+        jTree1.expandRow(0);
+        jTree1.setRootVisible(false);
+        jTree1.setShowsRootHandles(true);
+        setVisible(true);
+    }
 
     
 }

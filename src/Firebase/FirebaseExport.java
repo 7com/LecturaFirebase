@@ -39,13 +39,14 @@ import org.apache.poi.ss.usermodel.Sheet;
  *
  * @author fivc
  */
-public class Firebase implements Runnable{
+public class FirebaseExport implements Runnable{
 
     private JTree jTree1;
     private int op;
     private TreePath selPath;
     private String ruta;
     private String token;
+    private String firebaseURL;
     
     @Override
     public void run() {
@@ -56,7 +57,7 @@ public class Firebase implements Runnable{
             String[] lista = s.split(",");
             s=lista[1].substring(1)+"/"+lista[2].substring(1);
             ruta=s;
-            s="https://sapbot-001.firebaseio.com/"+s+"/";
+            s=firebaseURL+s+"/";
             crearXLS();
 
         }
@@ -66,8 +67,9 @@ public class Firebase implements Runnable{
         }
     }
     
-    public Firebase(JTree j,int i, TreePath t, String to)
+    public FirebaseExport(JTree j,int i, TreePath t, String to, String url)
     {
+        firebaseURL=url;
         jTree1=j;
         op=i;
         selPath=t;
@@ -221,7 +223,7 @@ public class Firebase implements Runnable{
         String[] lista = s.split(",");
         s=lista[1].substring(1)+"/"+lista[2].substring(1);
         String temp=s;
-        s="https://sapbot-001.firebaseio.com/"+s+".json?print=pretty&access_token="+token;
+        s=firebaseURL+s+".json?print=pretty&access_token="+token;
         temp=temp.replaceAll("/", " - ");
         temp=temp.replaceAll(":", "_");
         chooser.setSelectedFile(new File(temp));

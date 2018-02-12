@@ -5,6 +5,11 @@
  */
 package GUI;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Frame;
@@ -21,8 +26,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 /**
@@ -33,18 +41,40 @@ public class PantallaInicio extends javax.swing.JFrame {
     private String token;
     private TrayIcon trayIcon;
     private SystemTray tray;
+    private String firebaseURL;
+    private ExecutorService exec;
     /**
      * Creates new form PantallaInicio
      */
-    public PantallaInicio(String t) {
+    public PantallaInicio(String t,String url) {
         initComponents();
+        jButton3.setText("<html><font color='black'>Iniciar Módulo Descarga</font></html>");
         token = t;
+        firebaseURL=url;
+        exec = Executors.newFixedThreadPool(1);
         try {
             HideToSystemTray();
         } catch (IOException ex) {
             Logger.getLogger(PantallaInicio.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.getContentPane().setBackground(Color.WHITE);
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference ref = database.getReference("Sin Procesar");
+        ValueEventListener Lectura = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot ds) {
+                for(DataSnapshot snap : ds.getChildren()){
+                //Loop to go through all the child nodes
+                    System.out.println(snap.getKey());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError de) {
+                JOptionPane.showMessageDialog(null,de.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+            } 
+        };
+        ref.addValueEventListener(Lectura);
     }
 
     private void HideToSystemTray() throws IOException{
@@ -130,6 +160,9 @@ public class PantallaInicio extends javax.swing.JFrame {
         setIconImage(image);
     }
     
+    public void setButton3(boolean b){
+        jButton3.setEnabled(b);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -154,11 +187,21 @@ public class PantallaInicio extends javax.swing.JFrame {
 
         jButton2.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
         jButton2.setText("Salir");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Logo.png"))); // NOI18N
 
         jButton3.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
         jButton3.setText("Iniciar Modulo Descarga");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -192,6 +235,15 @@ public class PantallaInicio extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        exec.execute(new PantallaDescarga(token,firebaseURL,this));
+        setButton3(false);
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
