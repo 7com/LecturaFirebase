@@ -57,7 +57,8 @@ public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
         Iterator fieldNames = node.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next().toString();
-            n1.add(new DefaultMutableTreeNode(fieldName));
+            if (!fieldName.equalsIgnoreCase("*Sin Procesar") && !fieldName.equalsIgnoreCase("*Config"))
+                n1.add(new DefaultMutableTreeNode(fieldName));
         }
         for (int i=0; i<n1.size(); i++){
             json = IOUtils.toString(new URL(firebaseURL

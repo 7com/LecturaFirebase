@@ -28,8 +28,6 @@ import java.awt.event.WindowStateListener;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -43,29 +41,98 @@ public class PantallaInicio extends javax.swing.JFrame {
     private SystemTray tray;
     private String firebaseURL;
     private ExecutorService exec;
+    private boolean firstRun;
+    private float maxTemp, maxVolt;
     /**
      * Creates new form PantallaInicio
      */
     public PantallaInicio(String t,String url) {
+        this.firstRun = true;
+        this.maxTemp = 32;
+        this.maxVolt = 11;
         initComponents();
         jButton3.setText("<html><font color='black'>Iniciar Módulo Descarga</font></html>");
+        jButton1.setText("<html><font color='black'>Configurar Parámetros</font></html>");
         token = t;
         firebaseURL=url;
         exec = Executors.newFixedThreadPool(1);
         try {
             HideToSystemTray();
-        } catch (IOException ex) {
-            Logger.getLogger(PantallaInicio.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | AWTException ex) {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
         }
         this.getContentPane().setBackground(Color.WHITE);
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference ref = database.getReference("Sin Procesar");
+        firebase();
+    }
+    
+    public void setMax(float temp, float volt){
+        maxTemp=temp;
+        maxVolt=volt;
+    }
+    
+    public float getTemp(){
+        return maxTemp;
+    }
+    
+    public float getVolt(){
+        return maxVolt;
+    }
+    
+    private void firebase(){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference ref;
+        
+        ref = database.getReference(".info/connected");
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+              boolean connected = snapshot.getValue(Boolean.class);
+              if (connected) {
+                trayIcon.displayMessage("Mantenimiento SAPBot", "Firebase conectado.", TrayIcon.MessageType.INFO);
+                firstRun=false;
+              } else {
+                  if (!firstRun)
+                    trayIcon.displayMessage("Mantenimiento SAPBot", "Firebase se ha desconectado. Revisar conexión a Internet.", TrayIcon.MessageType.WARNING);
+                  else
+                    trayIcon.displayMessage("Mantenimiento SAPBot", "Conectando a Firebase...", TrayIcon.MessageType.INFO);
+              }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+              JOptionPane.showMessageDialog(null,error.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        ref = database.getReference("*Config");
+        ValueEventListener cargarCFG = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot ds) {
+                float temp=getTemp();
+                float volt=getVolt();
+                DataSnapshot d = ds.child("maxTemp");
+                if (d.getValue()!= null)
+                     temp = Float.parseFloat(d.getValue(String.class));
+                d = ds.child("maxVolt");
+                if (d.getValue()!= null)
+                     volt = Float.parseFloat(d.getValue(String.class));
+                setMax(temp,volt);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError de) {
+                JOptionPane.showMessageDialog(null,de.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+            } 
+        };
+        ref.addListenerForSingleValueEvent(cargarCFG);
+        
+        ref = database.getReference("*Sin Procesar");
         ValueEventListener Lectura = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot ds) {
                 for(DataSnapshot snap : ds.getChildren()){
                 //Loop to go through all the child nodes
-                    System.out.println(snap.getKey());
+                    System.out.println(snap.getKey()+" - "+snap.getValue(String.class));
                 }
             }
 
@@ -75,9 +142,10 @@ public class PantallaInicio extends javax.swing.JFrame {
             } 
         };
         ref.addValueEventListener(Lectura);
+        
     }
 
-    private void HideToSystemTray() throws IOException{
+    private void HideToSystemTray() throws IOException, AWTException{
         Image image = Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("Imagenes/icon.png"));
         try{
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -130,38 +198,30 @@ public class PantallaInicio extends javax.swing.JFrame {
         addWindowStateListener(new WindowStateListener() {
             public void windowStateChanged(WindowEvent e) {
                 if(e.getNewState()==ICONIFIED){
-                    try {
-                        tray.add(trayIcon);
-                        setVisible(false);
-                    } catch (AWTException ex) {
-                        System.out.println("unable to add to tray");
-                    }
+                    setVisible(false);
                 }
                 if(e.getNewState()==7){
-                            try{
-                    tray.add(trayIcon);
                     setVisible(false);
-                    }catch(AWTException ex){
-                    System.out.println("unable to add to system tray");
-                }
                     }
                 if(e.getNewState()==MAXIMIZED_BOTH){
-                            tray.remove(trayIcon);
                             setVisible(true);
                             toFront();
                         }
                         if(e.getNewState()==NORMAL){
-                            tray.remove(trayIcon);
                             setVisible(true);
                             toFront();
                         }
             }
         });
         setIconImage(image);
+        tray.add(trayIcon);
     }
     
     public void setButton3(boolean b){
         jButton3.setEnabled(b);
+    }
+    public void setButton1(boolean b){
+        jButton1.setEnabled(b);
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -184,6 +244,11 @@ public class PantallaInicio extends javax.swing.JFrame {
 
         jButton1.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
         jButton1.setText("Configurar Parámetros");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
         jButton2.setText("Salir");
@@ -237,13 +302,19 @@ public class PantallaInicio extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        exec.execute(new PantallaDescarga(token,firebaseURL,this));
         setButton3(false);
+        exec.execute(new PantallaDescarga(token,firebaseURL,this));
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        setButton1(false);
+        Configuracion c = new Configuracion(this);
+        c.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
