@@ -9,6 +9,8 @@ package GUI;
 import Firebase.FirebaseExport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -18,9 +20,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -50,17 +56,46 @@ public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
     }
 
     private void leerJSON(String url) throws MalformedURLException, IOException{
+        JProgressBar pb = new JProgressBar(0,100);
+        pb.setPreferredSize(new Dimension(250,40));
+        pb.setString("Preparando...");
+        pb.setStringPainted(true);
+        pb.setValue(0); 
+
+        JPanel center_panel = new JPanel();
+        center_panel.add(pb);
+
+        JDialog dialog = new JDialog((JFrame)null, "Trabajando ...");
+        dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        dialog.getContentPane().add(center_panel, BorderLayout.CENTER);
+        dialog.pack();
+        dialog.setVisible(true);
+
+        dialog.setLocationRelativeTo(null); // center on screen
+        dialog.toFront(); // raise above other java windows
+        
 	ArrayList<DefaultMutableTreeNode> n1 = new ArrayList<DefaultMutableTreeNode>();
 	String json = IOUtils.toString(new URL(url));
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(json);
         Iterator fieldNames = node.fieldNames();
+        int tot = node.size();
+        int cont=0;
+        int por;
         while (fieldNames.hasNext()) {
+            cont++;
+            por=(cont*50)/tot;
+            pb.setValue(por);
             String fieldName = fieldNames.next().toString();
             if (!fieldName.equalsIgnoreCase("*Sin Procesar") && !fieldName.equalsIgnoreCase("*Config"))
                 n1.add(new DefaultMutableTreeNode(fieldName));
         }
+        tot = n1.size();
+        cont=0;
         for (int i=0; i<n1.size(); i++){
+            cont++;
+            por=50+((cont*50)/tot);
+            pb.setValue(por);
             json = IOUtils.toString(new URL(firebaseURL
                     +n1.get(i).getUserObject().toString()+".json?shallow=true&access_token="+token));
             mapper = new ObjectMapper();
@@ -72,6 +107,7 @@ public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
             }
             SAPBot.insertNodeInto(n1.get(i), root, root.getChildCount());
         }      
+        dialog.dispose();
     }
        
     /** This method is called from within the constructor to

@@ -113,9 +113,18 @@ public class PantallaInicio extends javax.swing.JFrame {
                 DataSnapshot d = ds.child("maxTemp");
                 if (d.getValue()!= null)
                      temp = Float.parseFloat(d.getValue(String.class));
+                else{
+                    DatabaseReference dr = d.getRef();
+                    dr.setValue(Float.toString(temp));
+                }
+                    
                 d = ds.child("maxVolt");
                 if (d.getValue()!= null)
                      volt = Float.parseFloat(d.getValue(String.class));
+                else{
+                    DatabaseReference dr = d.getRef();
+                    dr.setValue(Float.toString(volt));
+                }
                 setMax(temp,volt);
             }
 

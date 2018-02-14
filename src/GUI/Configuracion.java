@@ -5,7 +5,10 @@
  */
 package GUI;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import java.awt.Color;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -62,6 +65,11 @@ public class Configuracion extends javax.swing.JFrame {
 
         jButton1.setFont(new java.awt.Font("Arial", 0, 13)); // NOI18N
         jButton1.setText("Aceptar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setFont(new java.awt.Font("Arial", 0, 13)); // NOI18N
         jButton2.setText("Cancelar");
@@ -118,6 +126,32 @@ public class Configuracion extends javax.swing.JFrame {
         p.setButton1(true);
         dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        boolean valid = true;
+        try {
+            float f = Float.parseFloat(jTextField1.getText());
+        } catch (NumberFormatException ex) {
+            valid=false;
+            JOptionPane.showMessageDialog(null,"Temperatura no es un float válido.","Error",JOptionPane.ERROR_MESSAGE);
+        }
+        try {
+            float f = Float.parseFloat(jTextField2.getText());
+        } catch (NumberFormatException ex) {
+            valid=false;
+            JOptionPane.showMessageDialog(null,"Voltaje no es un float válido.","Error",JOptionPane.ERROR_MESSAGE);
+        }
+        if (valid){
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference ref = database.getReference("*Config");
+            DatabaseReference dr = ref.child("maxTemp");
+            dr.setValue(jTextField1.getText());
+            dr = ref.child("maxVolt");
+            dr.setValue(jTextField2.getText());
+            p.setButton1(true);
+            dispose();
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
