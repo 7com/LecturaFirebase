@@ -71,7 +71,7 @@
 
     -->
 <target name="-post-jar">
-    <property name="store.jar.name" value="Lectura Firebase"/>
+    <property name="store.jar.name" value="Prototipo MP"/>
 
     <property name="store.dir" value="dist"/>
     <property name="store.jar" value="${store.dir}/${store.jar.name}.jar"/>

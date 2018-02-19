@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
  */
 public class Configuracion extends javax.swing.JFrame {
 
-    private PantallaInicio p;
+    private final PantallaInicio p;
     /**
      * Creates new form Configuracion
      */

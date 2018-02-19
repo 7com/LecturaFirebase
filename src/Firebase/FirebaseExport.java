@@ -41,12 +41,12 @@ import org.apache.poi.ss.usermodel.Sheet;
  */
 public class FirebaseExport implements Runnable{
 
-    private JTree jTree1;
-    private int op;
-    private TreePath selPath;
+    private final JTree jTree1;
+    private final int op;
+    private final TreePath selPath;
     private String ruta;
-    private String token;
-    private String firebaseURL;
+    private final String token;
+    private final String firebaseURL;
     
     @Override
     public void run() {

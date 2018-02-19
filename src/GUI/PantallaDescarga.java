@@ -34,11 +34,11 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.io.IOUtils;
 
 public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
-    private DefaultMutableTreeNode root = new DefaultMutableTreeNode("SAPBot");
-    private DefaultTreeModel SAPBot = new DefaultTreeModel(root);
-    private ExecutorService exec;
-    private String token;
-    private String firebaseURL;
+    private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("SAPBot");
+    private final DefaultTreeModel SAPBot = new DefaultTreeModel(root);
+    private final ExecutorService exec;
+    private final String token;
+    private final String firebaseURL;
     private PantallaInicio inicio;
     /** Creates new form Pantalla */
     public PantallaDescarga(String t,String url, PantallaInicio i) {
