@@ -5,6 +5,8 @@
  */
 package GUI;
 
+import Firebase.Motor;
+import Firebase.PruebaAnalyzer;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -24,8 +26,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -53,7 +64,7 @@ public class PantallaInicio extends javax.swing.JFrame {
         jButton1.setText("<html><font color='black'>Configurar Parámetros</font></html>");
         token = t;
         firebaseURL=url;
-        exec = Executors.newFixedThreadPool(1);
+        exec = Executors.newWorkStealingPool();
         try {
             HideToSystemTray();
         } catch (IOException | AWTException ex) {
@@ -137,10 +148,42 @@ public class PantallaInicio extends javax.swing.JFrame {
         ValueEventListener Lectura = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot ds) {
+                Collection<Future<?>> futures = new LinkedList<Future<?>>();
+                trayIcon.displayMessage("Mantenimiento SAPBot", "Iniciando Análisis", TrayIcon.MessageType.INFO);              
                 for(DataSnapshot snap : ds.getChildren()){
                 //Loop to go through all the child nodes
-                    System.out.println(snap.getKey()+" - "+snap.getValue(String.class));
+                    String ruta = snap.getKey()+"/"+snap.getValue(String.class);
+                    trayIcon.displayMessage("Mantenimiento SAPBot", "Procesando: "+ruta, TrayIcon.MessageType.INFO);
+                    DatabaseReference r = ds.getRef().getRoot();
+                    r = r.child(ruta);
+                    ArrayList<Motor>motores = new ArrayList<>();
+                    r.addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override
+                        public void onDataChange(DataSnapshot ds) {
+                            for (int i=1;i<=7;i++){   
+                                DataSnapshot d = ds.child("Motor "+i);
+                                if (d.getValue() != null)
+                                    motores.add(d.getValue(Motor.class));
+                            }
+                            futures.add(exec.submit(new PruebaAnalyzer(ruta,motores,maxTemp,maxVolt,trayIcon)));
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError de) {
+                            JOptionPane.showMessageDialog(null,de.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
                 }
+                for (Future<?> future:futures) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException ex) {
+                        JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                    } catch (ExecutionException ex) {
+                        JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                trayIcon.displayMessage("Mantenimiento SAPBot","Fin de los análisis", TrayIcon.MessageType.INFO);
             }
 
             @Override
@@ -229,7 +272,7 @@ public class PantallaInicio extends javax.swing.JFrame {
         jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Protipo Mant. Predictivo para SAPBot");
+        setTitle("Mant. Predictivo para SAPBot");
         setBackground(new java.awt.Color(255, 255, 255));
         setResizable(false);
 
