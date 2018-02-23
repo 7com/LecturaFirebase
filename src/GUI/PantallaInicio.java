@@ -25,7 +25,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -68,6 +70,11 @@ public class PantallaInicio extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
         }
         this.getContentPane().setBackground(Color.WHITE);
+        while(true)
+        {
+            if (escribir())
+                break;
+        }
         firebase();
     }
     
@@ -183,6 +190,36 @@ public class PantallaInicio extends javax.swing.JFrame {
         ref.addValueEventListener(Lectura);
     }
 
+    private boolean escribir()
+    {
+        Date date = new Date();
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        int year  = localDate.getYear();
+        int month = localDate.getMonthValue();
+        int day   = localDate.getDayOfMonth();
+        String ruta = "Logs"+File.separator+day+"-"+month+"-"+year+".log";
+        try
+        {
+            File directory = new File("Logs");
+            if (! directory.exists()){
+                directory.mkdir();
+            }
+            File archivo = new File(ruta);
+            BufferedWriter bw;
+            if(!archivo.exists()){
+                bw = new BufferedWriter(new FileWriter(archivo));
+                bw.write("Log Iniciado");
+                bw.write(System.lineSeparator()+"**********************************************");
+                bw.close();
+            }
+            
+            return true;
+        } catch (IOException ex){
+            System.out.println(ex.getMessage());
+            return false;
+        }
+    }
+    
     private void HideToSystemTray() throws IOException, AWTException{
         Image image = Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("Imagenes/icon.png"));
         try{
@@ -392,7 +429,7 @@ public class PantallaInicio extends javax.swing.JFrame {
             String ruta = "Logs"+File.separator+day+"-"+month+"-"+year+".log";
             File f = new File (ruta);
             java.awt.Desktop.getDesktop().open(f);
-        } catch (IOException ex) {
+        } catch (IOException | IllegalArgumentException ex ) {
             JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton5ActionPerformed
