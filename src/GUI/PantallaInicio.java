@@ -5,8 +5,8 @@
  */
 package GUI;
 
-import Firebase.Motor;
-import Firebase.PruebaAnalyzer;
+import Motor.Motor;
+import Motor.PruebaAnalyzer;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,18 +25,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -57,14 +53,15 @@ public class PantallaInicio extends javax.swing.JFrame {
      */
     public PantallaInicio(String t,String url) {
         this.firstRun = true;
-        this.maxTemp = 32;
+        this.maxTemp = 34;
         this.maxVolt = 11;
         initComponents();
         jButton3.setText("<html><font color='black'>Iniciar Módulo Descarga</font></html>");
         jButton1.setText("<html><font color='black'>Configurar Parámetros</font></html>");
+        jButton5.setText("<html><font color='black'>Abrir LOG</font></html>");
         token = t;
         firebaseURL=url;
-        exec = Executors.newWorkStealingPool();
+        exec = Executors.newCachedThreadPool();
         try {
             HideToSystemTray();
         } catch (IOException | AWTException ex) {
@@ -97,13 +94,13 @@ public class PantallaInicio extends javax.swing.JFrame {
             public void onDataChange(DataSnapshot snapshot) {
               boolean connected = snapshot.getValue(Boolean.class);
               if (connected) {
-                trayIcon.displayMessage("Mantenimiento SAPBot", "Firebase conectado.", TrayIcon.MessageType.INFO);
-                firstRun=false;
+                    jLabel3.setText("<html><font color='blue'>Conectado</font></html>");
+                    firstRun=false;
               } else {
-                  if (!firstRun)
+                  if (!firstRun){
                     trayIcon.displayMessage("Mantenimiento SAPBot", "Firebase se ha desconectado. Revisar conexión a Internet.", TrayIcon.MessageType.WARNING);
-                  else
-                    trayIcon.displayMessage("Mantenimiento SAPBot", "Conectando a Firebase...", TrayIcon.MessageType.INFO);
+                    jLabel3.setText("<html><font color='red'>Reintentando Conectar</font></html>");     
+                }     
               }
             }
 
@@ -147,43 +144,35 @@ public class PantallaInicio extends javax.swing.JFrame {
         ref = database.getReference("*Sin Procesar");
         ValueEventListener Lectura = new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot ds) {
-                Collection<Future<?>> futures = new LinkedList<Future<?>>();
-                trayIcon.displayMessage("Mantenimiento SAPBot", "Iniciando Análisis", TrayIcon.MessageType.INFO);              
-                for(DataSnapshot snap : ds.getChildren()){
-                //Loop to go through all the child nodes
-                    String ruta = snap.getKey()+"/"+snap.getValue(String.class);
-                    trayIcon.displayMessage("Mantenimiento SAPBot", "Procesando: "+ruta, TrayIcon.MessageType.INFO);
-                    DatabaseReference r = ds.getRef().getRoot();
-                    r = r.child(ruta);
-                    ArrayList<Motor>motores = new ArrayList<>();
-                    r.addListenerForSingleValueEvent(new ValueEventListener(){
-                        @Override
-                        public void onDataChange(DataSnapshot ds) {
-                            for (int i=1;i<=7;i++){   
-                                DataSnapshot d = ds.child("Motor "+i);
-                                if (d.getValue() != null)
-                                    motores.add(d.getValue(Motor.class));
+            public void onDataChange(DataSnapshot ds) { 
+                if (ds.getChildrenCount() != 0){
+                    trayIcon.displayMessage("Mantenimiento SAPBot","Nuevas pruebas detectadas. Analizando...", TrayIcon.MessageType.INFO);
+                    for(DataSnapshot snap : ds.getChildren()){
+                    //Loop to go through all the child nodes
+                        String ruta = snap.getKey()+"/"+snap.getValue(String.class);
+                        DatabaseReference r = ds.getRef().getRoot();
+                        r = r.child(ruta);
+                        ArrayList<Motor>motores = new ArrayList<>();
+                        r.addListenerForSingleValueEvent(new ValueEventListener(){
+                            @Override
+                            public void onDataChange(DataSnapshot ds) {
+                                for (int i=1;i<=7;i++){   
+                                    DataSnapshot d = ds.child("Motor "+i);
+                                    if (d.getValue() != null)
+                                        motores.add(d.getValue(Motor.class));
+                                }
+                                PruebaAnalyzer prueba = new PruebaAnalyzer(snap.getKey(),snap.getValue(String.class),motores,maxTemp,maxVolt,trayIcon);
+                                prueba.run();
                             }
-                            futures.add(exec.submit(new PruebaAnalyzer(ruta,motores,maxTemp,maxVolt,trayIcon)));
-                        }
 
-                        @Override
-                        public void onCancelled(DatabaseError de) {
-                            JOptionPane.showMessageDialog(null,de.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-                        }
-                    });
-                }
-                for (Future<?> future:futures) {
-                    try {
-                        future.get();
-                    } catch (InterruptedException ex) {
-                        JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-                    } catch (ExecutionException ex) {
-                        JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                            @Override
+                            public void onCancelled(DatabaseError de) {
+                                JOptionPane.showMessageDialog(null,de.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                            }
+                        });
                     }
+                    ds.getRef().removeValue();
                 }
-                trayIcon.displayMessage("Mantenimiento SAPBot","Fin de los análisis", TrayIcon.MessageType.INFO);
             }
 
             @Override
@@ -192,7 +181,6 @@ public class PantallaInicio extends javax.swing.JFrame {
             } 
         };
         ref.addValueEventListener(Lectura);
-        
     }
 
     private void HideToSystemTray() throws IOException, AWTException{
@@ -270,6 +258,9 @@ public class PantallaInicio extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mant. Predictivo para SAPBot");
@@ -310,6 +301,19 @@ public class PantallaInicio extends javax.swing.JFrame {
             }
         });
 
+        jButton5.setFont(new java.awt.Font("Arial", 0, 13)); // NOI18N
+        jButton5.setText("Abrir LOG");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setFont(new java.awt.Font("Arial", 0, 13)); // NOI18N
+        jLabel2.setText("Estado Firebase:");
+
+        jLabel3.setText("Conectando...");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -317,13 +321,18 @@ public class PantallaInicio extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jLabel1)
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -331,15 +340,21 @@ public class PantallaInicio extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -366,6 +381,22 @@ public class PantallaInicio extends javax.swing.JFrame {
         setVisible(false);
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        try {
+            // TODO add your handling code here:
+            Date date = new Date();
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            int year  = localDate.getYear();
+            int month = localDate.getMonthValue();
+            int day   = localDate.getDayOfMonth();
+            String ruta = "Logs"+File.separator+day+"-"+month+"-"+year+".log";
+            File f = new File (ruta);
+            java.awt.Desktop.getDesktop().open(f);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -375,6 +406,9 @@ public class PantallaInicio extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     // End of variables declaration//GEN-END:variables
 }

@@ -129,19 +129,22 @@ public class Configuracion extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         boolean valid = true;
+        float t = p.getTemp();
+        float v = p.getVolt();
         try {
-            float f = Float.parseFloat(jTextField1.getText());
+            t = Float.parseFloat(jTextField1.getText());
         } catch (NumberFormatException ex) {
             valid=false;
             JOptionPane.showMessageDialog(null,"Temperatura no es un float válido.","Error",JOptionPane.ERROR_MESSAGE);
         }
         try {
-            float f = Float.parseFloat(jTextField2.getText());
+            v = Float.parseFloat(jTextField2.getText());
         } catch (NumberFormatException ex) {
             valid=false;
             JOptionPane.showMessageDialog(null,"Voltaje no es un float válido.","Error",JOptionPane.ERROR_MESSAGE);
         }
         if (valid){
+            p.setMax(t, v);
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference ref = database.getReference("*Config");
             DatabaseReference dr = ref.child("maxTemp");
