@@ -14,18 +14,23 @@ import javax.swing.JOptionPane;
 public class main {
     private static String BD_URL, CREDENCIALES;
     public static void main(String args[]) {
+        File lock = new File("lock");
         try {
-            carcarCFG();
-            iniciarFirebase();
-            PantallaInicio p = new PantallaInicio(obtenerToken(),BD_URL);
-            p.setVisible(true);
-        } catch (FileNotFoundException ex) {
-            JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-            System.exit(1);
+            if (lock.createNewFile()){
+                lock.deleteOnExit();
+                carcarCFG();
+                iniciarFirebase();
+                PantallaInicio p = new PantallaInicio(obtenerToken(),BD_URL);
+                p.setVisible(true);
+            } else
+            {
+                System.exit(1);
+            }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
             System.exit(1);
-        }
+        }           
+       
     }
     
     public static String obtenerToken() throws IOException{

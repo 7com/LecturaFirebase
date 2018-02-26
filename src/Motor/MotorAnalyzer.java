@@ -101,7 +101,7 @@ class VoltAnalyzer implements Runnable{
         volt=volt.replaceAll(" ", "");
         String[] tmp = volt.split(",");
         for (int i=0; i<tmp.length; i++){
-            if (Float.parseFloat(tmp[i]) > max)
+            if (abs(Float.parseFloat(tmp[i])) > max)
                 contador++;
         }
         int total = tmp.length;
