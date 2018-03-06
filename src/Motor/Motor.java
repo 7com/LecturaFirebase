@@ -1,14 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Motor;
 
-/**
- *
- * @author fivc
- */
+//Clase que contiene los datos para el motor. Se utiliza cuando se genera el archivo
+//Excel y al momento de analizar las pruebas (Mantenimiento Predictivo).
+
+//Clase requerida para obtener datos desde Firebase.
 public class Motor {
     private String Posicion,Temperatura,Voltaje;
     

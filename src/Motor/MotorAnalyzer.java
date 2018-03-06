@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Motor;
 
 import static java.lang.Math.abs;
@@ -11,10 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author fivc
- */
 public class MotorAnalyzer implements Runnable{
     private final Motor motor;
     private final float temp, volt;
@@ -32,6 +23,7 @@ public class MotorAnalyzer implements Runnable{
         this.latch = latch;
     }
     
+    //Se generan hilos para analizar al mismo tiempo los voltajes, temperaturas y la relación Voltaje-Posición.
     @Override
     public void run() {
         CountDownLatch la = new CountDownLatch(3);
@@ -54,6 +46,7 @@ public class MotorAnalyzer implements Runnable{
     
 }
 
+//Clase dedicada a analizar la temperatura del motor.
 class TempAnalyzer implements Runnable{
     private String temp;
     private final float max;
@@ -82,6 +75,7 @@ class TempAnalyzer implements Runnable{
     }
 }
 
+//Clase dedicada a analizar el voltaje del motor.
 class VoltAnalyzer implements Runnable{
     
     private String volt;
@@ -113,6 +107,7 @@ class VoltAnalyzer implements Runnable{
     
 }
 
+//Clase dedicada a analizar la relación Voltaje-Posición del motor.
 class PosAnalyzer implements Runnable{
     
     private String pos;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package GUI;
 
 import Motor.Motor;
@@ -38,10 +33,6 @@ import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-/**
- *
- * @author fivc
- */
 public class PantallaInicio extends javax.swing.JFrame {
     private String token;
     private TrayIcon trayIcon;
@@ -91,10 +82,14 @@ public class PantallaInicio extends javax.swing.JFrame {
         return maxVolt;
     }
     
+    //Función que contiene todo el codigo relacionado con Firebase y el Análisis
+    //de las pruebas
     private void firebase(){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref;
         
+        //Se verifica si se encuentra conectado a Firebase. En caso de perder conexión
+        //Envia un aviso al usuario.
         ref = database.getReference(".info/connected");
         ref.addValueEventListener(new ValueEventListener() {
             @Override
@@ -117,6 +112,8 @@ public class PantallaInicio extends javax.swing.JFrame {
             }
         });
         
+        //Carga los valores máximos (temperatura y voltaje) desde firebase.
+        //Si no existen, utiliza los predeterminados del programa.
         ref = database.getReference("*Config");
         ValueEventListener cargarCFG = new ValueEventListener() {
             @Override
@@ -148,6 +145,8 @@ public class PantallaInicio extends javax.swing.JFrame {
         };
         ref.addListenerForSingleValueEvent(cargarCFG);
         
+        //Evento que espera a que se generen nuevas pruebas desde SAPBot en Firebase.
+        //Al detectar una nueva prueba inicia automáticamente el algoritmo de análisis de las pruebas.
         ref = database.getReference("*Sin Procesar");
         ValueEventListener Lectura = new ValueEventListener() {
             @Override
@@ -190,6 +189,7 @@ public class PantallaInicio extends javax.swing.JFrame {
         ref.addValueEventListener(Lectura);
     }
 
+    //Función dedicada a crear el LOG diario del sistema.
     private boolean escribir()
     {
         Date date = new Date();
@@ -220,6 +220,7 @@ public class PantallaInicio extends javax.swing.JFrame {
         }
     }
     
+    //Función dedicada a crear el icono de la aplicación en la Bandeja del Sistema (Junto al reloj).
     private void HideToSystemTray() throws IOException, AWTException{
         Image image = Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("Imagenes/icon.png"));
         try{
@@ -397,27 +398,27 @@ public class PantallaInicio extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
+    //Botón Modulo de Descarga
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         setButton3(false);
         exec.execute(new PantallaDescarga(token,firebaseURL,this));
     }//GEN-LAST:event_jButton3ActionPerformed
-
+    //Botón Salir
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jButton2ActionPerformed
-
+    //Botón configuración
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         setButton1(false);
         Configuracion c = new Configuracion(this);
         c.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
-
+    //Botón a segundo plano
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
         setVisible(false);
     }//GEN-LAST:event_jButton4ActionPerformed
-
+    //Botón abrir LOG
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         try {
             // TODO add your handling code here:

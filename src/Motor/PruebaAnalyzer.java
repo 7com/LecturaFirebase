@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Motor;
 
 import java.awt.TrayIcon;
@@ -19,10 +14,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author fivc
- */
 public class PruebaAnalyzer{
 
     private final TrayIcon trayIcon;
@@ -44,6 +35,7 @@ public class PruebaAnalyzer{
         problemas = new ArrayList<>();
     }
         
+    //Crea hilos para analizar cada motor del robot
     public void run() {
         ArrayList<MotorAnalyzer> analizar= new ArrayList<>();
         CountDownLatch la = new CountDownLatch(motores.size());
@@ -56,6 +48,7 @@ public class PruebaAnalyzer{
         } catch (InterruptedException E) {
              JOptionPane.showMessageDialog(null, E.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+        //Espera a que cada hilo termine para detectar si existen problemas en los motores y agregarlos al LOG.
         for (int i=0;i<analizar.size();i++)
         {
             if (analizar.get(i).alerta)
@@ -70,12 +63,14 @@ public class PruebaAnalyzer{
             if (escribir(problemas))
                 break;
         }
+        //Si existen problemas se envia alerta al usuario.
         if(!problemas.isEmpty())
             trayIcon.displayMessage("Mantenimiento SAPBot", nombre+" con problemas. Revisar LOG", TrayIcon.MessageType.ERROR);
         else
             trayIcon.displayMessage("Mantenimiento SAPBot", "Analisis de "+nombre+" finalizada", TrayIcon.MessageType.INFO);
     } 
     
+    //Función para escribir en el LOG diario.
     private boolean escribir(ArrayList<String> s)
     {
         Date date = new Date();

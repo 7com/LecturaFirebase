@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Motor;
 
 import com.google.firebase.database.DataSnapshot;
@@ -48,6 +43,7 @@ public class FirebaseExport implements Runnable{
     private final String token;
     private final String firebaseURL;
     
+    //Inicia el proceso de crear Excel si inicia con un 0, en caso contrario baja la prueba como JSON.
     @Override
     public void run() {
         if (op==0)
@@ -76,6 +72,7 @@ public class FirebaseExport implements Runnable{
         token=to;
     }
     
+    //Función dedicada a crear un Excel con los datos de la prueba seleccionada en el menú.
     private void crearXLS(){
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference(ruta);
@@ -202,6 +199,7 @@ public class FirebaseExport implements Runnable{
         
     }
     
+    //Función dedicada a descargar la prueba en formato JSON.
     private void descargarJSON(){
         JFileChooser chooser = new JFileChooser();
         chooser.addChoosableFileFilter(new FileFilter() {

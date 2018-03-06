@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package GUI;
 
 import Motor.FirebaseExport;
@@ -55,6 +49,7 @@ public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
         });
     }
 
+    //Función dedicada a crear el menú para descargar las pruebas desde Firebase
     private void leerJSON(String url) throws MalformedURLException, IOException{
         JProgressBar pb = new JProgressBar(0,100);
         pb.setPreferredSize(new Dimension(250,40));
@@ -155,6 +150,7 @@ public class PantallaDescarga extends javax.swing.JFrame implements Runnable{
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    //Evento que crea menú desplegable al presionar el botón derecho del mouse.
     private void jTree1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MousePressed
         if(SwingUtilities.isRightMouseButton(evt)){
             boolean select=false;

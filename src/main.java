@@ -1,3 +1,15 @@
+  /********************************************************************
+   * SAPBot - Sistema de Adquisición de Parámetros Scorbot            *
+   *             Prototipo de Mantenimiento Predictivo                *
+   *                                                                  *
+   * Desarrollado por:                                                *
+   *                    - Hugo Ríos Fuentes                           *
+   *                    - Felipe Valenzuela Cornejo                   *
+   *                                                                  *
+   *             Universidad del Bío-Bío 2017-2                       *
+   *                                                                  *
+   *  Memoria para optar al título de Ingeniero Civil en Informática  *
+   ********************************************************************/
 
 import GUI.PantallaInicio;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -14,18 +26,11 @@ import javax.swing.JOptionPane;
 public class main {
     private static String BD_URL, CREDENCIALES;
     public static void main(String args[]) {
-        File lock = new File("lock");
         try {
-            if (lock.createNewFile()){
-                lock.deleteOnExit();
-                carcarCFG();
-                iniciarFirebase();
-                PantallaInicio p = new PantallaInicio(obtenerToken(),BD_URL);
-                p.setVisible(true);
-            } else
-            {
-                System.exit(1);
-            }
+            carcarCFG();
+            iniciarFirebase();
+            PantallaInicio p = new PantallaInicio(obtenerToken(),BD_URL);
+            p.setVisible(true);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
             System.exit(1);
@@ -33,6 +38,7 @@ public class main {
        
     }
     
+    //Obtiene el token a partir de la credencial JSON para utilizar con el módulo de descarga
     public static String obtenerToken() throws IOException{
         // Load the service account key JSON file
         FileInputStream serviceAccount = new FileInputStream(CREDENCIALES);
@@ -54,6 +60,7 @@ public class main {
         return token;
     }
     
+    //Carga la configuración y la credencial de Firebase desde los archivos correspondientes.
     public static void carcarCFG() throws FileNotFoundException{
         File archivo = new File("config.cfg");
         Scanner scan = new Scanner(archivo);

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package GUI;
 
 import com.google.firebase.database.DatabaseReference;
@@ -10,16 +5,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.awt.Color;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author fivc
- */
 public class Configuracion extends javax.swing.JFrame {
 
     private final PantallaInicio p;
-    /**
-     * Creates new form Configuracion
-     */
+
     public Configuracion(PantallaInicio p) {
         initComponents();
         this.getContentPane().setBackground(Color.WHITE);
@@ -122,11 +111,14 @@ public class Configuracion extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    //Botón Cancelar
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         p.setButton1(true);
         dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    //Botón Aceptar.
+    //Verifica si son float válidos y los sube a firebase.
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         boolean valid = true;
         float t = p.getTemp();
