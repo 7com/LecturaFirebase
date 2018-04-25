@@ -7,7 +7,7 @@
    *                    - Felipe Valenzuela Cornejo                   *
    *                                                                  *
    *             Universidad del Bío-Bío 2017-2                       *
-   *                                                                  *
+   *       Desarrollado a petición del Laboratorio CIMUBB             *
    *  Memoria para optar al título de Ingeniero Civil en Informática  *
    ********************************************************************/
 
